@@ -108,7 +108,7 @@
                         heroBackground.style.backgroundImage = `url('images/${imageFileName}')`;  // Use local image path
                     } else {
                         console.log('No data for today');
-                        document.getElementById('fact').textContent = "No fact for today.";
+                        document.getElementById('fact').textContent = "No update for today.";
                     }
                 })
                 .catch(error => console.error('Error fetching data: ', error));
