@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Has Iran Attacked Yet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css" integrity="sha512-6qQc1yYtBThIx8Ek9z7vHc8bYXj9sErBoiH+G5uhR5C1oY7Nq0BI8DWIbBw5fVtF9vlwBJ1Q/r87CtMQAdEcpQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+        .hero {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            color: #fff;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: rgba(255, 0, 115, 0.5);
+            z-index: 1;
+        }
+        .container {
+            position: relative;
+            z-index: 2; /* above the overlay */
+            padding: 10px; /* added padding to prevent text cut-off */
+        }
+        .title {
+            font-size: 5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            word-wrap: break-word; /* ensures that text will wrap and not cut off */
+        }
+        .subtitle {
+            font-size: 1.5rem;
+            font-weight: 100;
+            margin-top: 2rem;
+            word-wrap: break-word; /* ensures that text will wrap and not cut off */
+        }
+        /* Existing media query for tablets */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            .subtitle {
+                font-size: 1rem;
+                margin-top: 1.5rem;
+            }
+        }
+        /* Additional media query for smaller screens like iPhones */
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem; /* smaller font size for smaller screens */
+            }
+            .subtitle {
+                font-size: 0.75rem; /* smaller font size for smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero is-primary is-fullheight" id="heroBackground">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title" id="fact">Scanning satellite images...</h1>
+                <h2 class="subtitle">
+                    Daily checkin for <span id="current-date"></span>
+                </h2>
+            </div>
+        </div>
+    </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const currentDateElement = document.getElementById('current-date');
+            const heroBackground = document.getElementById('heroBackground');
+            const options = { month: 'numeric', day: 'numeric', year: 'numeric' };
+            const todayFormatted = new Date().toLocaleDateString('en-US', options);
+
+            currentDateElement.textContent = todayFormatted;
+
+            const sheetUrl = 'https://docs.google.com/spreadsheets/d/15vUhNn7BITCSDRoKFN96B3n0I395-zxmRMkeJunKkQM/pub?gid=0&single=true&output=csv';
+
+            fetch(sheetUrl)
+                .then(response => response.text())
+                .then(csv => {
+                    const lines = csv.split('\n').filter(Boolean);
+                    const data = lines.slice(1).map(parseCSVLine);
+                    const todayData = data.find(row => new Date(row[0]).toLocaleDateString('en-US', options) === todayFormatted);
+                    
+                    if (todayData) {
+                        const [date, fact, imageFileName] = todayData;  // Extract image filename from the sheet
+                        document.getElementById('fact').textContent = fact;
+                        heroBackground.style.backgroundImage = `url('images/${imageFileName}')`;  // Use local image path
+                    } else {
+                        console.log('No data for today');
+                        document.getElementById('fact').textContent = "No fact for today.";
+                    }
+                })
+                .catch(error => console.error('Error fetching data: ', error));
+
+            function parseCSVLine(line) {
+                const pattern = /(".*?"|[^",]+)(?=\s*,|\s*$)/g;
+                let matches = line.match(pattern);
+                return matches ? matches.map(cell => cell.trim().replace(/^"|"$/g, '')) : [];
+            }
+    });
+    </script>
+</body>
+</html>
